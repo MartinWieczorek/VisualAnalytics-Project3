@@ -16,6 +16,7 @@ library(purrr)
 library(reshape)
 
 all_data <- readRDS("Data/2017_UN_votes.rds")
+country_names <- unique(all_data$country_name)
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
@@ -58,10 +59,11 @@ ui <- dashboardPage(
       # 2nd tab states comparison
       tabItem(tabName = "states_comparison",
               fluidRow(
-                box(sliderInput(inputId = "three", label = "three", 1, 100, 50))    
+                box(selectInput(inputId = "country1", label = "country1", choices = country_names, selected = country_names[1]),    
+                    selectInput(inputId = "country2", label = "country2", choices = country_names, selected = country_names[2]),
+                    plotOutput(outputId = "stateVotes"))    
               )
       )
-      
     )
   )
 )
@@ -173,7 +175,7 @@ server <- function(input, output) {
   df_unanimous <- data.frame(year = numeric(nr_years), 
                              unanimous = numeric(nr_years),
                              non_unanimous = numeric(nr_years)
-                           )
+  )
   for (i in 1:nr_years) {
     df_unanimous$year[i] <- year_data[[i]]$year[1]
     df_unanimous$unanimous[i] <- 0
@@ -241,6 +243,40 @@ server <- function(input, output) {
     ggplot(data = getDataByType(), mapping = aes(x = year, y = value, fill = variable))
     + geom_bar(position = "fill",stat = "identity")
   )
+  
+  ### State comparison ###
+  
+  getYearDataForStates <- reactive({
+    year_data_states <- all_data %>% filter(country_name == input$country1 | country_name == input$country2)
+    #                  rcid,  code, name, vote,  date, year, unres, short,   me,   nu,   di,   hr,   co,   ec
+    columnsToKeep <- c(TRUE, FALSE, TRUE, TRUE, FALSE, TRUE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE)
+    year_data_states <- year_data_states[, columnsToKeep]
+    year_data_states <- split(year_data_states, year_data_states$year)
+    return(year_data_states)
+  })
+  
+  getStateVotes <- reactive({
+    year_data_states <- getYearDataForStates()
+    voteState <- NULL
+    for (i in 1:nr_years) {
+      voteState$year[i] <- year_data_states[[i]]$year[1]
+      country_vote <- year_data_states[[i]] %>% filter(country_name == input$country1) %>% select(vote)
+      voteState$country1[i] <- country_vote %>% filter(vote == "yes") %>% unlist() %>% length() / country_vote %>% unlist() %>% length()
+      
+      country_vote <- year_data_states[[i]] %>% filter(country_name == input$country2) %>% select(vote)
+      voteState$country2[i] <- country_vote %>% filter(vote == "yes") %>% unlist() %>% length() / country_vote %>% unlist() %>% length()
+    } 
+    names(voteState) <- c("year", input$country1, input$country2)
+    voteState <-  melt(data.frame(voteState), id.vars = "year")
+  })
+  
+  # plot for percentage of yes votes
+  output$stateVotes <- renderPlot(
+    ggplot(data = getStateVotes(), mapping = aes(x = year, y = value, fill = variable))
+    + geom_bar(position = "dodge",stat = "identity")
+  )
+  
+  # plot for percentage of yes votes by issue code
   
 }
 
