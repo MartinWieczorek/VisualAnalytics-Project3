@@ -67,6 +67,9 @@ ui <- dashboardPage(
                   box(
                     selectInput(inputId = "issueCode", label = "Issue Code", choices = c("me", "nu", "di", "hr", "co", "ec"), selected = "me"),
                     plotOutput(outputId = "YesByYearsAndIssueCode")
+                  ),
+                  box(
+                    plotOutput(outputId = "voteAgreement"), width = 12
                   )
               )
       )
@@ -322,6 +325,7 @@ server <- function(input, output) {
         voteState$country2[i] <- 0
       }  
     } 
+    
     names(voteState) <- c("year", input$country1, input$country2)
     voteState <-  melt(data.frame(voteState), id.vars = "year")
   })
@@ -330,6 +334,46 @@ server <- function(input, output) {
     ggplot(data = getStateVotesByIssueCode(), mapping = aes(x = year, y = value, fill = variable))
     + geom_bar(position = "dodge",stat = "identity") +
       ggtitle("Percentage of \"Yes\" votes by years and by issue code for the selected states") +  theme(plot.title = element_text(hjust = 0.5))
+    )
+  
+  # plot for vote agreement between the selected states per year
+  getVoteAgreement <- reactive({
+    #this is how I calculate the vote agreement:
+    # 1. compute percentage of yes, no and abstain votes for both countries seperately
+    # 2. the sum of the minima of all three is the vote agreement
+    
+    year_data_states <- getYearDataForStates()
+    voteState <- NULL
+    for (i in 1:nr_years) {
+      
+      voteState$year[i] <- year_data_states[[i]]$year[1]
+      
+      country_vote <- year_data_states[[i]] %>% filter(country_name == input$country1) %>% select(vote)
+      voteState$country1Yes[i] <- country_vote %>% filter(vote == "yes") %>% unlist() %>% length() / country_vote %>% unlist() %>% length()
+      voteState$country1No[i] <- country_vote %>% filter(vote == "no") %>% unlist() %>% length() / country_vote %>% unlist() %>% length()
+      voteState$country1Abstain[i] <- country_vote %>% filter(vote == "abstain") %>% unlist() %>% length() / country_vote %>% unlist() %>% length()
+      
+      country_vote <- year_data_states[[i]] %>% filter(country_name == input$country2) %>% select(vote)
+      voteState$country2Yes[i] <- country_vote %>% filter(vote == "yes") %>% unlist() %>% length() / country_vote %>% unlist() %>% length()
+      voteState$country2No[i] <- country_vote %>% filter(vote == "no") %>% unlist() %>% length() / country_vote %>% unlist() %>% length()
+      voteState$country2Abstain[i] <- country_vote %>% filter(vote == "abstain") %>% unlist() %>% length() / country_vote %>% unlist() %>% length()
+      
+      minYes <- min(voteState$country1Yes[i], voteState$country2Yes[i])
+      minNo <- min(voteState$country1No[i], voteState$country2No[i])
+      minAbstain <- min(voteState$country1Abstain[i], voteState$country2Abstain[i])
+      
+      voteState$value[i] <- minYes + minNo + minAbstain
+    } 
+    voteState <- data.frame(year = voteState$year,
+                            value = voteState$value*100)
+  })
+  
+  output$voteAgreement <- renderPlot(
+    ggplot(data = getVoteAgreement(), mapping = aes(x = year, y = value))
+    + geom_bar(position = "dodge",stat = "identity") +
+      ggtitle("Average Vote agreement for the selected states") +  theme(plot.title = element_text(hjust = 0.5))
+      + geom_line(data = df_plot, aes(x = Year, y = Number_of_resolutions),color = "red")
+      
   )
   
 }
