@@ -372,7 +372,7 @@ server <- function(input, output) {
     ggplot(data = getVoteAgreement(), mapping = aes(x = year, y = value))
     + geom_bar(position = "dodge",stat = "identity") +
       ggtitle("Average Vote agreement for the selected states") +  theme(plot.title = element_text(hjust = 0.5))
-      + geom_line(data = df_plot, aes(x = Year, y = Number_of_resolutions),color = "red")
+      + geom_line(data = df_plot, aes(x = Year, y = Number_of_resolutions),color = "red", size=1.1)
       
   )
   
