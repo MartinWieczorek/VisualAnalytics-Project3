@@ -60,8 +60,14 @@ ui <- dashboardPage(
       tabItem(tabName = "states_comparison",
               fluidRow(
                 box(selectInput(inputId = "country1", label = "country1", choices = country_names, selected = country_names[1]),    
-                    selectInput(inputId = "country2", label = "country2", choices = country_names, selected = country_names[2]),
-                    plotOutput(outputId = "stateVotes"))    
+                    selectInput(inputId = "country2", label = "country2", choices = country_names, selected = country_names[2]), width = 12),
+                  box(
+                    plotOutput(outputId = "stateVotes")
+                  ),
+                  box(
+                    selectInput(inputId = "issueCode", label = "Issue Code", choices = c("me", "nu", "di", "hr", "co", "ec"), selected = "me"),
+                    plotOutput(outputId = "YesByYearsAndIssueCode")
+                  )
               )
       )
     )
@@ -282,6 +288,49 @@ server <- function(input, output) {
   )
   
   # plot for percentage of yes votes by issue code
+  getStateVotesByIssueCode <- reactive({
+    
+    year_data_states <- getYearDataForStates()
+    voteState <- NULL
+    for (i in 1:nr_years) {
+      
+      voteState$year[i] <- year_data_states[[i]]$year[1]
+      
+      switch (input$issueCode,
+              "me" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(me == 1),
+              "nu" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(nu == 1),
+              "di" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(di == 1),
+              "hr" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(hr == 1),
+              "co" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(co == 1),
+              "ec" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(ec == 1)
+      )
+      
+      
+      country_vote <- year_data_states[[i]] %>% filter(country_name == input$country1) %>% select(vote)
+      voteState$country1[i] <- country_vote %>% filter(vote == "yes") %>% unlist() %>% length() / country_vote %>% unlist() %>% length()
+      
+      if(is.nan(voteState$country1[i])) #happens if no resolutions for an issue code exists in that year
+      {
+        voteState$country1[i] <- 0
+      }
+      
+      country_vote <- year_data_states[[i]] %>% filter(country_name == input$country2) %>% select(vote)
+      voteState$country2[i] <- country_vote %>% filter(vote == "yes") %>% unlist() %>% length() / country_vote %>% unlist() %>% length()
+    
+      if(is.nan(voteState$country2[i])) #happens if no resolutions for an issue code exists in that year
+      {
+        voteState$country2[i] <- 0
+      }  
+    } 
+    names(voteState) <- c("year", input$country1, input$country2)
+    voteState <-  melt(data.frame(voteState), id.vars = "year")
+  })
+  
+  output$YesByYearsAndIssueCode <- renderPlot(
+    ggplot(data = getStateVotesByIssueCode(), mapping = aes(x = year, y = value, fill = variable))
+    + geom_bar(position = "dodge",stat = "identity") +
+      ggtitle("Percentage of \"Yes\" votes by years and by issue code for the selected states") +  theme(plot.title = element_text(hjust = 0.5))
+  )
   
 }
 
