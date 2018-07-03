@@ -79,8 +79,12 @@ ui <- dashboardPage(
       tabItem(tabName = "vote_prediction",
               fluidRow(
                 box(selectInput(inputId = "country3", label = "state", choices = country_names, selected = country_names[1]),    
-                    selectInput(inputId = "classification_algorithm", label = "classification algorithm", choices = c("kNN", "decision tree", "random forest"), selected = "kNN"), width = 12)
-              )
+                    selectInput(inputId = "classification_algorithm", label = "classification algorithm", choices = c("kNN", "decision tree", "random forest"), selected = "kNN"), width = 12),
+                box(
+                  plotOutput(outputId = "votePrediction"), width = 12
+                )
+                
+                )
       )
     )
   )
@@ -377,7 +381,8 @@ server <- function(input, output) {
                             value = voteState$value*100)
     
     #votePrediction()
- 
+  
+    return(voteState)
   })
   
   output$voteAgreement <- renderPlot(
@@ -397,7 +402,8 @@ server <- function(input, output) {
     prediction_data <- all_data[, !names(all_data) %in% c("rcid", "country_code", "date", "unres", "short")]
     
     #only use data from currently selected country
-    prediction_data <- prediction_data[ prediction_data$country_name == input$country3, ]
+    prediction_data <- prediction_data %>% 
+      filter(country_name == input$country3)
     prediction_data <- prediction_data[, !names(prediction_data) %in% c("country_name")] # we don't need the country name column anymore
     
     #create training set
@@ -408,10 +414,13 @@ server <- function(input, output) {
     #create test set
     test_set <- prediction_data[-training_sample_set,]
     
+    x <- as.matrix(training_set[, -1])
+    y <- factor(training_set$vote)
+    fit <- knn3(x, y, k = 400)
     
+    predict <- predict(fit, test_set[, -1], type = 'prob')
 
   })
-  
 }
 
 # Run the application 
