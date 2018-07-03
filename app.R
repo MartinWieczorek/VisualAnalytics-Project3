@@ -55,11 +55,11 @@ ui <- dashboardPage(
                   box(width = 12,
                     plotOutput(outputId = "votePercent")
                   ))),
-                tabPanel("Plot resolution types", fluidRow(
+                tabPanel("Resolution type distribution", fluidRow(
                   box(width = 12,
                     plotOutput(outputId = "typePercent")
                   ))),
-                tabPanel("Percentage of Votes", fluidRow(
+                tabPanel("Unanimous votes", fluidRow(
                   box(width = 12,
                     plotOutput(outputId = "unanimous"),
                     selectInput(inputId = "resType", label = "Resolution Type", choices = c("me", "nu", "di", "hr", "co", "ec"), selected = "me"),
