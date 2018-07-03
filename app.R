@@ -82,10 +82,15 @@ ui <- dashboardPage(
                 box(selectInput(inputId = "country3", label = "state", choices = country_names, selected = country_names[1]),    
                     selectInput(inputId = "classification_algorithm", label = "classification algorithm", choices = c("kNN", "decision tree", "random forest"), selected = "kNN"), width = 12),
                 box(
-                  plotOutput(outputId = "votePrediction"), width = 12
+                  conditionalPanel(
+                    condition = "input.classification_algorithm == 'kNN'",
+                    sliderInput(inputId = "knn_k", label = "k", min = 1, max = 500, value = 150, step = 1)
+                  ), width = 12
+                ),
+                box(DT::dataTableOutput(outputId = "confusionMatrix"), width = 12
+                  
                 )
-                
-                )
+              )
       )
     )
   )
@@ -416,28 +421,24 @@ server <- function(input, output) {
     if(input$classification_algorithm == "kNN")
     {
       m <- "knn"
+      grid <- expand.grid(k = c(input$knn_k))
     }
     
     #train and do the prediction
     x <- as.matrix(training_set[, -1])
     y <- factor(training_set$vote)
-    fit <- train(x = x, y = y, method = m, preProcess = c("center", "scale"))
+    
+    fit <- train(x = x, y = y, method = m, preProcess = c("center", "scale"), tuneGrid = grid)
     prediction <- predict(fit, test_set[, -1], type = 'raw')
     
     #create confusion matrix
     confusion <- confusionMatrix(prediction, test_set$vote)
     
+    return(as.data.frame(confusion$overall))
 
   })
   
-  output$votePrediction <- renderPlot(
-    ggplot(data = votePrediction(), mapping = aes(x = year, y = value))
-    + geom_bar(position = "dodge",stat = "identity") +
-      geom_smooth(method = "lm", se = FALSE, fullrange = TRUE, color = "blue") +
-      ggtitle("Average Vote agreement for the selected states") +  theme(plot.title = element_text(hjust = 0.5))
-    + geom_line(data = df_plot, aes(x = Year, y = Number_of_resolutions),color = "red", size=1.1)
-    
-  )
+  output$confusionMatrix <- DT::renderDT(votePrediction())
 }
 
 # Run the application 
