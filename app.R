@@ -85,6 +85,10 @@ ui <- dashboardPage(
                   conditionalPanel(
                     condition = "input.classification_algorithm == 'kNN'",
                     sliderInput(inputId = "knn_k", label = "k", min = 1, max = 500, value = 150, step = 1)
+                  ),
+                  conditionalPanel(
+                    condition = "input.classification_algorithm == 'decision tree'",
+                    sliderInput(inputId = "rpart_cp", label = "cp", min = 0, max = 0.3, value = 0, step = 0.001)
                   ), width = 12
                 ),
                 box(DT::dataTableOutput(outputId = "confusionMatrix"), width = 12
@@ -422,6 +426,11 @@ server <- function(input, output) {
     {
       m <- "knn"
       grid <- expand.grid(k = c(input$knn_k))
+    }
+    if(input$classification_algorithm == "decision tree")
+    {
+      m <- "rpart"
+      grid <- expand.grid(cp = c(input$rpart_cp))
     }
     
     #train and do the prediction
