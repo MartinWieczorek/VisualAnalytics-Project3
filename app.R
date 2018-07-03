@@ -16,6 +16,7 @@ library(purrr)
 library(reshape)
 library(caret)
 library(e1071)
+library(randomForest)
 
 all_data <- readRDS("Data/2017_UN_votes.rds")
 country_names <- unique(all_data$country_name)
@@ -97,6 +98,10 @@ ui <- dashboardPage(
                   conditionalPanel(
                     condition = "input.classification_algorithm == 'decision tree'",
                     sliderInput(inputId = "rpart_cp", label = "cp", min = 0, max = 0.3, value = 0, step = 0.001)
+                  ),
+                  conditionalPanel(
+                    condition = "input.classification_algorithm == 'random forest'",
+                    sliderInput(inputId = "rf_mtry", label = "mtry", min = 1, max = 7, value = 1, step = 1)
                   ), width = 12
                 ),
                 box(DT::dataTableOutput(outputId = "confusionMatrix"), width = 12
@@ -415,6 +420,8 @@ server <- function(input, output) {
   ### Vote prediction ###
   
   votePrediction <- reactive({
+    set.seed(400) #to make results reproducable
+    
     #remove unnecessary columns
     prediction_data <- all_data[, !names(all_data) %in% c("rcid", "country_code", "date", "unres", "short")]
     
@@ -440,6 +447,11 @@ server <- function(input, output) {
     {
       m <- "rpart"
       grid <- expand.grid(cp = c(input$rpart_cp))
+    }
+    if(input$classification_algorithm == "random forest")
+    {
+      m <- "rf"
+      grid <- expand.grid(mtry = c(input$rf_mtry))
     }
     
     #train and do the prediction
