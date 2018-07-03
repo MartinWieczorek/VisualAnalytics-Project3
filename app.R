@@ -415,16 +415,18 @@ server <- function(input, output) {
     
     if(input$classification_algorithm == "kNN")
     {
-      x <- as.matrix(training_set[, -1])
-      y <- factor(training_set$vote)
-      fit <- knn3(x, y, k = 400)
-      
-      prediction <- predict(fit, test_set[, -1], type = 'class')
-      
-      #create confusion matrix
-      confusion <- confusionMatrix(prediction, test_set$vote)
-      
+      m <- "knn"
     }
+    
+    #train and do the prediction
+    x <- as.matrix(training_set[, -1])
+    y <- factor(training_set$vote)
+    fit <- train(x = x, y = y, method = m, preProcess = c("center", "scale"))
+    prediction <- predict(fit, test_set[, -1], type = 'raw')
+    
+    #create confusion matrix
+    confusion <- confusionMatrix(prediction, test_set$vote)
+    
 
   })
   
