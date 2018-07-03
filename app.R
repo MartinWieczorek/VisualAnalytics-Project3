@@ -15,6 +15,7 @@ library(ggplot2)
 library(purrr)
 library(reshape)
 library(caret)
+library(e1071)
 
 all_data <- readRDS("Data/2017_UN_votes.rds")
 country_names <- unique(all_data$country_name)
@@ -379,8 +380,6 @@ server <- function(input, output) {
     } 
     voteState <- data.frame(year = voteState$year,
                             value = voteState$value*100)
-    
-    #votePrediction()
   
     return(voteState)
   })
@@ -414,13 +413,29 @@ server <- function(input, output) {
     #create test set
     test_set <- prediction_data[-training_sample_set,]
     
-    x <- as.matrix(training_set[, -1])
-    y <- factor(training_set$vote)
-    fit <- knn3(x, y, k = 400)
-    
-    predict <- predict(fit, test_set[, -1], type = 'prob')
+    if(input$classification_algorithm == "kNN")
+    {
+      x <- as.matrix(training_set[, -1])
+      y <- factor(training_set$vote)
+      fit <- knn3(x, y, k = 400)
+      
+      prediction <- predict(fit, test_set[, -1], type = 'class')
+      
+      #create confusion matrix
+      confusion <- confusionMatrix(prediction, test_set$vote)
+      
+    }
 
   })
+  
+  output$votePrediction <- renderPlot(
+    ggplot(data = votePrediction(), mapping = aes(x = year, y = value))
+    + geom_bar(position = "dodge",stat = "identity") +
+      geom_smooth(method = "lm", se = FALSE, fullrange = TRUE, color = "blue") +
+      ggtitle("Average Vote agreement for the selected states") +  theme(plot.title = element_text(hjust = 0.5))
+    + geom_line(data = df_plot, aes(x = Year, y = Number_of_resolutions),color = "red", size=1.1)
+    
+  )
 }
 
 # Run the application 
