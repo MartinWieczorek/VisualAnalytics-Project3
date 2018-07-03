@@ -25,45 +25,53 @@ ui <- dashboardPage(
   dashboardHeader(title = "UN Votes"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Summary", tabName = "summary", icon = icon("dashboard")),
+      menuItem("Summary", tabName = "summary", icon = icon("th")),
       menuItem("States comparison", tabName = "states_comparison", icon = icon("th")),
       menuItem("Vote prediction", tabName = "vote_prediction", icon = icon("th"))
     )
   ),
+  
   dashboardBody(
     tabItems(
       # 1st tab summary
       tabItem(tabName = "summary",
-              fluidRow(
-                box(
-                  # output table
-                  DT::dataTableOutput(outputId = "summaryTable")
-                )
-              ),
-              fluidRow(
-                box(
-                  plotOutput(outputId = "resPerYear")
-                ),
-                box(
-                  plotOutput(outputId = "votePercent")
-                ),
-                box(
-                  plotOutput(outputId = "typePercent")
-                ),
-                box(
-                  plotOutput(outputId = "unanimous")
-                ),
-                box(
-                  selectInput(inputId = "resType", label = "Resolution Type", choices = c("me", "nu", "di", "hr", "co", "ec"), selected = "me"),
-                  plotOutput(outputId = "unanimousPerType")
-                )
+              tabBox(
+                selected = "Table",
+                width = 12,
+                height = "auto",
+                tabPanel("Table", fluidRow(
+                           box(width = 12,
+                             # output table
+                             DT::dataTableOutput(outputId = "summaryTable", width = "100%", height = "auto")
+                           )
+                         )),
+                tabPanel("Voting per Year", fluidRow(
+                  box(width = 12,
+                    plotOutput(outputId = "resPerYear")
+                  ))),
+                tabPanel("Percentage of Votes", fluidRow(
+                  box(width = 12,
+                    plotOutput(outputId = "votePercent")
+                  ))),
+                tabPanel("Plot resolution types", fluidRow(
+                  box(width = 12,
+                    plotOutput(outputId = "typePercent")
+                  ))),
+                tabPanel("Percentage of Votes", fluidRow(
+                  box(width = 12,
+                    plotOutput(outputId = "unanimous"),
+                    selectInput(inputId = "resType", label = "Resolution Type", choices = c("me", "nu", "di", "hr", "co", "ec"), selected = "me"),
+                    plotOutput(outputId = "unanimousPerType")
+                  )))
               )
       ),
       # 2nd tab states comparison
       tabItem(tabName = "states_comparison",
               fluidRow(
-                box(selectInput(inputId = "country1", label = "country1", choices = country_names, selected = country_names[1]),    
-                    selectInput(inputId = "country2", label = "country2", choices = country_names, selected = country_names[2]), width = 12),
+                box(width = 12, title = "Select two states for comparison",
+                    box(selectInput(inputId = "country1", label = "state 1", choices = country_names, selected = country_names[1])),
+                    box(selectInput(inputId = "country2", label = "state 2", choices = country_names, selected = country_names[2]))
+                    ),
                   box(
                     plotOutput(outputId = "stateVotes")
                   ),
@@ -106,7 +114,7 @@ server <- function(input, output) {
   getResType <- function(me, nu, di, hr, co ,ec){
     string <- " "
     if(me)
-      string <- paste(string, "Palestinian", sep = " ")
+      string <- paste(string, "palestinian", sep = " ")
     if(nu)
       string <- paste(string, "nuclear", sep = " ")
     if(di)
@@ -134,10 +142,11 @@ server <- function(input, output) {
     DT_frame$shortDescription[i] <- as.character(res_data[[i]]$short[1])
     DT_frame$year[i] <- res_data[[i]]$year[1]
     DT_frame$nr_votes[i] <- length(res_data[[i]]$vote)
-    DT_frame$propYes[i] <- (res_data[[i]]$vote[res_data[[i]]$vote == "yes"] %>% length()) / DT_frame$nr_votes[i]
+    DT_frame$propYes[i] <- (res_data[[i]]$vote[res_data[[i]]$vote == "yes"] %>% length()) / DT_frame$nr_votes[i] * 100
     DT_frame$resType[i] <- getResType(res_data[[i]]$me[1], res_data[[i]]$nu[1], res_data[[i]]$di[1], 
                                       res_data[[i]]$hr[1], res_data[[i]]$co[1], res_data[[i]]$ec[1])
   }
+  names(DT_frame) <- c("RCID","Short description","Year","Number of votes","Yes-votes in %","Resolution Type")
   output$summaryTable <- DT::renderDT(DT_frame)
   
   # plot for number of resolutions up for voting per year 1946 - 2017
