@@ -14,6 +14,7 @@ library(DT)
 library(ggplot2)
 library(purrr)
 library(reshape)
+library(caret)
 
 all_data <- readRDS("Data/2017_UN_votes.rds")
 country_names <- unique(all_data$country_name)
@@ -24,7 +25,8 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Summary", tabName = "summary", icon = icon("dashboard")),
-      menuItem("States comparison", tabName = "states_comparison", icon = icon("th"))
+      menuItem("States comparison", tabName = "states_comparison", icon = icon("th")),
+      menuItem("Vote prediction", tabName = "vote_prediction", icon = icon("th"))
     )
   ),
   dashboardBody(
@@ -71,6 +73,13 @@ ui <- dashboardPage(
                   box(
                     plotOutput(outputId = "voteAgreement"), width = 12
                   )
+              )
+      ),
+      # 3rd tab vote prediction
+      tabItem(tabName = "vote_prediction",
+              fluidRow(
+                box(selectInput(inputId = "country3", label = "state", choices = country_names, selected = country_names[1]),    
+                    selectInput(inputId = "classification_algorithm", label = "classification algorithm", choices = c("kNN", "decision tree", "random forest"), selected = "kNN"), width = 12)
               )
       )
     )
@@ -366,6 +375,9 @@ server <- function(input, output) {
     } 
     voteState <- data.frame(year = voteState$year,
                             value = voteState$value*100)
+    
+    #votePrediction()
+ 
   })
   
   output$voteAgreement <- renderPlot(
@@ -376,6 +388,29 @@ server <- function(input, output) {
       + geom_line(data = df_plot, aes(x = Year, y = Number_of_resolutions),color = "red", size=1.1)
       
   )
+  
+  
+  ### Vote prediction ###
+  
+  votePrediction <- reactive({
+    #remove unnecessary columns
+    prediction_data <- all_data[, !names(all_data) %in% c("rcid", "country_code", "date", "unres", "short")]
+    
+    #only use data from currently selected country
+    prediction_data <- prediction_data[ prediction_data$country_name == input$country3, ]
+    prediction_data <- prediction_data[, !names(prediction_data) %in% c("country_name")] # we don't need the country name column anymore
+    
+    #create training set
+    training_set_percentage <- 0.75
+    training_sample_set <- sample(nrow(prediction_data), as.integer(training_set_percentage * nrow(prediction_data)), replace=FALSE)
+    training_set <- prediction_data[training_sample_set,]
+    
+    #create test set
+    test_set <- prediction_data[-training_sample_set,]
+    
+    
+
+  })
   
 }
 
