@@ -17,6 +17,7 @@ library(reshape)
 library(caret)
 library(e1071)
 library(randomForest)
+library(shinycssloaders)
 
 all_data <- readRDS("Data/2017_UN_votes.rds")
 country_names <- unique(all_data$country_name)
@@ -104,7 +105,8 @@ ui <- dashboardPage(
                     sliderInput(inputId = "rf_mtry", label = "mtry", min = 1, max = 7, value = 1, step = 1)
                   ), width = 12
                 ),
-                box(DT::dataTableOutput(outputId = "confusionMatrix"), width = 12
+                box(
+                  withSpinner(DT::dataTableOutput(outputId = "confusionMatrix")), width = 12
                   
                 )
               )
@@ -159,7 +161,7 @@ server <- function(input, output) {
   year_data <- all_data[, columnsToKeep]
   year_data <- split(year_data, year_data$year)
   #View(year_data)
-  print(length(year_data))
+
   nr_years <- length(year_data)
   df_plot <-  data.frame(year = numeric(nr_years), nr_res = numeric(nr_years))
   for (i in 1:nr_years) {
@@ -419,6 +421,8 @@ server <- function(input, output) {
   
   ### Vote prediction ###
   
+
+  
   votePrediction <- reactive({
     set.seed(400) #to make results reproducable
     
@@ -453,12 +457,16 @@ server <- function(input, output) {
       m <- "rf"
       grid <- expand.grid(mtry = c(input$rf_mtry))
     }
+    trainctrl <- trainControl(method = "cv",
+                              number=10)
     
     #train and do the prediction
     x <- as.matrix(training_set[, -1])
     y <- factor(training_set$vote)
     
-    fit <- train(x = x, y = y, method = m, preProcess = c("center", "scale"), tuneGrid = grid)
+    fit <- train(x = x, y = y, method = m, preProcess = c("center", "scale"), tuneGrid = grid, trControl = trainctrl)
+    
+    
     prediction <- predict(fit, test_set[, -1], type = 'raw')
     
     #create confusion matrix
