@@ -62,7 +62,12 @@ ui <- dashboardPage(
                 tabPanel("Unanimous votes", fluidRow(
                   box(width = 12,
                     plotOutput(outputId = "unanimous"),
-                    selectInput(inputId = "resType", label = "Resolution Type", choices = c("me", "nu", "di", "hr", "co", "ec"), selected = "me"),
+                    selectInput(inputId = "resType", label = "Resolution Type", choices = c("palestinian conflict", 
+                                                                                            "nuclear weapons and material", 
+                                                                                            "disarmament and arms control", 
+                                                                                            "human rights", 
+                                                                                            "colonialism", 
+                                                                                            "economic development"), selected = "palestinian conflict"),
                     plotOutput(outputId = "unanimousPerType")
                   )))
               )
@@ -88,7 +93,12 @@ ui <- dashboardPage(
                       ),
                       conditionalPanel(
                         condition = "input.radio == 'Years and Issue code'",
-                        selectInput(inputId = "issueCode", label = "Issue Code", choices = c("me", "nu", "di", "hr", "co", "ec"), selected = "me"),
+                        selectInput(inputId = "issueCode", label = "Issue Code", choices = c("palestinian conflict", 
+                                                                                             "nuclear weapons and material", 
+                                                                                             "disarmament and arms control", 
+                                                                                             "human rights", 
+                                                                                             "colonialism", 
+                                                                                             "economic development"), selected = "palestinian conflict"),
                         plotOutput(outputId = "YesByYearsAndIssueCode")
                       ),width = 12
                     )
@@ -239,6 +249,13 @@ server <- function(input, output) {
     df_resType$co[i] <- sum(year_data[[i]]$co)
     df_resType$ec[i] <- sum(year_data[[i]]$ec)
   }
+  names(df_resType) <- c("year", 
+                         "palestinian conflict", 
+                         "nuclear weapons and material", 
+                         "disarmament and arms control", 
+                         "human rights", 
+                         "colonialism", 
+                         "economic development")
   df_resType <- melt(df_resType, id.vars = "year")
   #print(df_resType)
   
@@ -300,12 +317,12 @@ server <- function(input, output) {
     for (i in 1:nr_years) {
       filtered_by_type <- NULL
       switch (input$resType,
-              "me" = filtered_by_type <- year_data[[i]] %>% filter(me == 1),
-              "nu" = filtered_by_type <- year_data[[i]] %>% filter(nu == 1),
-              "di" = filtered_by_type <- year_data[[i]] %>% filter(di == 1),
-              "hr" = filtered_by_type <- year_data[[i]] %>% filter(hr == 1),
-              "co" = filtered_by_type <- year_data[[i]] %>% filter(co == 1),
-              "ec" = filtered_by_type <- year_data[[i]] %>% filter(ec == 1)
+              "palestinian conflict" = filtered_by_type <- year_data[[i]] %>% filter(me == 1),
+              "nuclear weapons and material" = filtered_by_type <- year_data[[i]] %>% filter(nu == 1),
+              "disarmament and arms control" = filtered_by_type <- year_data[[i]] %>% filter(di == 1),
+              "human rights" = filtered_by_type <- year_data[[i]] %>% filter(hr == 1),
+              "colonialism" = filtered_by_type <- year_data[[i]] %>% filter(co == 1),
+              "economic development" = filtered_by_type <- year_data[[i]] %>% filter(ec == 1)
       )
       df_unanimous_type$year[i] <- year_data[[i]]$year[1]
       df_unanimous_type$unanimous[i] <- 0
@@ -388,12 +405,12 @@ server <- function(input, output) {
       voteState$year[i] <- year_data_states[[i]]$year[1]
       
       switch (input$issueCode,
-              "me" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(me == 1),
-              "nu" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(nu == 1),
-              "di" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(di == 1),
-              "hr" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(hr == 1),
-              "co" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(co == 1),
-              "ec" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(ec == 1)
+              "palestinian conflict" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(me == 1),
+              "nuclear weapons and material" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(nu == 1),
+              "disarmament and arms control" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(di == 1),
+              "human rights" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(hr == 1),
+              "colonialism" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(co == 1),
+              "economic development" = year_data_states[[i]] <- year_data_states[[i]] %>% filter(ec == 1)
       )
       
       
