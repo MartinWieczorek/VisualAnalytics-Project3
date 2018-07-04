@@ -172,7 +172,7 @@ server <- function(input, output) {
   #print(df_plot)
   
   output$resPerYear <- renderPlot(
-    ggplot(data = df_plot, mapping = aes(x = Year, y = Number_of_resolutions)) + geom_line() + geom_point() + ggtitle("Number of resolutions up for voting per year") +  theme(plot.title = element_text(hjust = 0.5))
+    ggplot(data = df_plot, mapping = aes(x = Year, y = Number_of_resolutions)) + geom_line() + geom_point() + ggtitle("Number of resolutions up for voting per year") +  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 18))
   )
   
   # plot for average percentage of yes, no, abstain votes per year
@@ -190,7 +190,7 @@ server <- function(input, output) {
   output$votePercent <- renderPlot(
     ggplot(data = df_percentage, mapping = aes(x = year, y = value, fill = variable))
     + geom_bar(position = "fill",stat = "identity") +
-      ggtitle("Average percentage of \"yes\", \"no\" and \"abstain\" votes per year") +  theme(plot.title = element_text(hjust = 0.5))
+      ggtitle("Average percentage of \"yes\", \"no\" and \"abstain\" votes per year") +  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 18))
   )
   
   # plot for resolution types per year
@@ -218,7 +218,7 @@ server <- function(input, output) {
   output$typePercent <- renderPlot(
     ggplot(data = df_resType, mapping = aes(x = year, y = value, fill = variable))
     + geom_bar(position = "fill",stat = "identity") +
-      ggtitle("Proportion of resolution types per year") +  theme(plot.title = element_text(hjust = 0.5))
+      ggtitle("Proportion of resolution types per year") +  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 18))
   )
   
   # plot for proportion of unanimous (2/3 yes) and non-unanimous votings per year
@@ -248,7 +248,7 @@ server <- function(input, output) {
   output$unanimous <- renderPlot(
     ggplot(data = df_unanimous, mapping = aes(x = year, y = value, fill = variable))
     + geom_bar(position = "fill",stat = "identity") +
-      ggtitle("Proportion of \"unanimous\" votings (at least 2/3 \"Yes\" votes) and non-\"unanimous\" votings per year") +  theme(plot.title = element_text(hjust = 0.5))
+      ggtitle("Proportion of \"unanimous\" votings (at least 2/3 \"Yes\" votes) and non-\"unanimous\" votings per year") +  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 18))
   )
   
   # plot for proportion of unanimous (2/3 yes) and non-unanimous votings per year and resolution type
@@ -293,7 +293,7 @@ server <- function(input, output) {
   output$unanimousPerType <- renderPlot(
     ggplot(data = getDataByType(), mapping = aes(x = year, y = value, fill = variable))
     + geom_bar(position = "fill",stat = "identity") +
-      ggtitle("Proportion of \"unanimous\" votings (at least 2/3 \"Yes\" votes) and non-\"unanimous\" votings per year and resolution type") +  theme(plot.title = element_text(hjust = 0.5))
+      ggtitle("Proportion of \"unanimous\" votings (at least 2/3 \"Yes\" votes) and non-\"unanimous\" votings per year and resolution type") +  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 18))
   )
   
   ### State comparison ###
@@ -326,7 +326,7 @@ server <- function(input, output) {
   output$stateVotes <- renderPlot(
     ggplot(data = getStateVotes(), mapping = aes(x = year, y = value, fill = variable))
     + geom_bar(position = "dodge",stat = "identity") +
-      ggtitle("Percentage of \"Yes\" votes by years for the selected states") +  theme(plot.title = element_text(hjust = 0.5))
+      ggtitle("Percentage of \"Yes\" votes by years for the selected states") +  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 18))
   )
   
   # plot for percentage of yes votes by issue code
@@ -372,7 +372,7 @@ server <- function(input, output) {
   output$YesByYearsAndIssueCode <- renderPlot(
     ggplot(data = getStateVotesByIssueCode(), mapping = aes(x = year, y = value, fill = variable))
     + geom_bar(position = "dodge",stat = "identity") +
-      ggtitle("Percentage of \"Yes\" votes by years and by issue code for the selected states") +  theme(plot.title = element_text(hjust = 0.5))
+      ggtitle("Percentage of \"Yes\" votes by years and by issue code for the selected states") +  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 18))
     )
   
   # plot for vote agreement between the selected states per year
@@ -413,7 +413,7 @@ server <- function(input, output) {
     ggplot(data = getVoteAgreement(), mapping = aes(x = year, y = value))
     + geom_bar(position = "dodge",stat = "identity") +
       geom_smooth(method = "lm", se = FALSE, fullrange = TRUE, color = "blue") +
-      ggtitle("Average Vote agreement for the selected states") +  theme(plot.title = element_text(hjust = 0.5))
+      ggtitle("Average Vote agreement for the selected states") +  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 18))
       + geom_line(data = df_plot, aes(x = Year, y = Number_of_resolutions),color = "red", size=1.1)
       
   )
@@ -464,7 +464,7 @@ server <- function(input, output) {
     x <- as.matrix(training_set[, -1])
     y <- factor(training_set$vote)
     
-    fit <- train(x = x, y = y, method = m, preProcess = c("center", "scale"), tuneGrid = grid, trControl = trainctrl)
+    fit <- train(x = x, y = y, method = m, preProcess = c("center"), tuneGrid = grid, trControl = trainctrl)
     
     
     prediction <- predict(fit, test_set[, -1], type = 'raw')
