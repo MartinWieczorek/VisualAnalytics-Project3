@@ -180,14 +180,14 @@ server <- function(input, output) {
   )
   
   # plot for average percentage of yes, no, abstain votes per year
-  df_percentage <- data.frame(year = numeric(nr_years), nr_yes = numeric(nr_years), nr_no = numeric(nr_years), nr_abstain = numeric(nr_years))
+  df_percentage <- data.frame(year = numeric(nr_years), yes = numeric(nr_years), no = numeric(nr_years), abstain = numeric(nr_years))
   for (i in 1:nr_years) {
     votes <- table(year_data[[i]]$vote)
     total <- length(year_data[[i]]$vote)
     df_percentage$year[i] <- year_data[[i]]$year[1]
-    df_percentage$nr_yes[i] <- votes[["yes"]] / total
-    df_percentage$nr_no[i] <- votes[["no"]] / total
-    df_percentage$nr_abstain[i] <- votes[["abstain"]] / total
+    df_percentage$yes[i] <- votes[["yes"]] / total
+    df_percentage$no[i] <- votes[["no"]] / total
+    df_percentage$abstain[i] <- votes[["abstain"]] / total
   }
   df_percentage <- melt(df_percentage, id.vars = "year")
   
@@ -198,7 +198,8 @@ server <- function(input, output) {
     + xlab("Year") 
     + ylab("Percent")
     + theme(axis.text=element_text(size=14), axis.title=element_text(size=18))
-    
+    + guides(fill=guide_legend(title="Votes"))
+    + theme(legend.title = element_text(size=18), legend.text = element_text(size=14))
     )
   
   # plot for resolution types per year
@@ -230,6 +231,8 @@ server <- function(input, output) {
     + xlab("Year") 
     + ylab("Percent")
     + theme(axis.text=element_text(size=14), axis.title=element_text(size=18))
+    + guides(fill=guide_legend(title="Resolution Type"))
+    + theme(legend.title = element_text(size=18), legend.text = element_text(size=14))
     )
   
   # plot for proportion of unanimous (2/3 yes) and non-unanimous votings per year
@@ -263,6 +266,8 @@ server <- function(input, output) {
     + xlab("Year") 
     + ylab("Percent")
     + theme(axis.text=element_text(size=14), axis.title=element_text(size=18))
+    + guides(fill=guide_legend(title="Votings"))
+    + theme(legend.title = element_text(size=18), legend.text = element_text(size=14))
     )
   
   # plot for proportion of unanimous (2/3 yes) and non-unanimous votings per year and resolution type
@@ -311,6 +316,8 @@ server <- function(input, output) {
     + xlab("Year") 
     + ylab("Percent")
     + theme(axis.text=element_text(size=14), axis.title=element_text(size=18))
+    + guides(fill=guide_legend(title="Votings"))
+    + theme(legend.title = element_text(size=18), legend.text = element_text(size=14))
     )
   
   ### State comparison ###
@@ -347,6 +354,8 @@ server <- function(input, output) {
     + xlab("Year") 
     + ylab("Percent")
     + theme(axis.text=element_text(size=14), axis.title=element_text(size=18))
+    + guides(fill=guide_legend(title="State"))
+    + theme(legend.title = element_text(size=18), legend.text = element_text(size=14))
     )
   
   # plot for percentage of yes votes by issue code
@@ -392,10 +401,12 @@ server <- function(input, output) {
   output$YesByYearsAndIssueCode <- renderPlot(
     ggplot(data = getStateVotesByIssueCode(), mapping = aes(x = year, y = value, fill = variable))
     + geom_bar(position = "dodge",stat = "identity") +
-      ggtitle("Percentage of \"Yes\" votes by years and by issue code for the selected states") +  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 18))
+      ggtitle("Percentage of \"Yes\" votes by years and by issue code for the selected states") +  theme(plot.title = element_text(hjust = 0.1, face = "bold", size = 18))
     + xlab("Year") 
     + ylab("Percent")
     + theme(axis.text=element_text(size=14), axis.title=element_text(size=18))
+    + guides(fill=guide_legend(title="State"))
+    + theme(legend.title = element_text(size=18), legend.text = element_text(size=14))
     )
   
   # plot for vote agreement between the selected states per year
