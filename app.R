@@ -81,11 +81,16 @@ ui <- dashboardPage(
                   "Percentage of \"Yes\" Votes",
                   fluidRow(
                     box(
-                      plotOutput(outputId = "stateVotes"), width = 12
-                    ),
-                    box(
-                      selectInput(inputId = "issueCode", label = "Issue Code", choices = c("me", "nu", "di", "hr", "co", "ec"), selected = "me"),
-                      plotOutput(outputId = "YesByYearsAndIssueCode"), width = 12
+                      radioButtons(inputId = "radio", label = "\"Yes\" votes by", choices = c("Years", "Years and Issue code")),
+                      conditionalPanel(
+                        condition = "input.radio == 'Years'",
+                        plotOutput(outputId = "stateVotes")
+                      ),
+                      conditionalPanel(
+                        condition = "input.radio == 'Years and Issue code'",
+                        selectInput(inputId = "issueCode", label = "Issue Code", choices = c("me", "nu", "di", "hr", "co", "ec"), selected = "me"),
+                        plotOutput(outputId = "YesByYearsAndIssueCode")
+                      ),width = 12
                     )
                   ) 
                 ),
@@ -416,7 +421,7 @@ server <- function(input, output) {
   output$YesByYearsAndIssueCode <- renderPlot(
     ggplot(data = getStateVotesByIssueCode(), mapping = aes(x = year, y = value, fill = variable))
     + geom_bar(position = "dodge",stat = "identity") +
-      ggtitle("Percentage of \"Yes\" votes by years and by issue code for the selected states") +  theme(plot.title = element_text(hjust = 0.1, face = "bold", size = 18))
+      ggtitle("Percentage of \"Yes\" votes by years and by issue code for the selected states") +  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 18))
     + xlab("Year") 
     + ylab("Percent")
     + theme(axis.text=element_text(size=14), axis.title=element_text(size=18))
