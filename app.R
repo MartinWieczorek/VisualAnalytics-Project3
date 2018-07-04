@@ -69,22 +69,37 @@ ui <- dashboardPage(
       ),
       # 2nd tab states comparison
       tabItem(tabName = "states_comparison",
-              fluidRow(
-                box(width = 12, title = "Select two states for comparison",
-                    box(selectInput(inputId = "country1", label = "state 1", choices = country_names, selected = country_names[1])),
-                    box(selectInput(inputId = "country2", label = "state 2", choices = country_names, selected = country_names[2]))
+              box(width = 12, title = "Select two states for comparison",
+                  box(selectInput(inputId = "country1", label = "state 1", choices = country_names, selected = country_names[1])),
+                  box(selectInput(inputId = "country2", label = "state 2", choices = country_names, selected = country_names[2]))
+              ),
+              tabBox(
+                selected = "Percentage of \"Yes\" Votes",
+                width = 12,
+                height = "auto",
+                tabPanel(
+                  "Percentage of \"Yes\" Votes",
+                  fluidRow(
+                    box(
+                      plotOutput(outputId = "stateVotes"), width = 12
                     ),
-                  box(
-                    plotOutput(outputId = "stateVotes")
-                  ),
-                  box(
-                    selectInput(inputId = "issueCode", label = "Issue Code", choices = c("me", "nu", "di", "hr", "co", "ec"), selected = "me"),
-                    plotOutput(outputId = "YesByYearsAndIssueCode")
-                  ),
-                  box(
-                    plotOutput(outputId = "voteAgreement"), width = 12
+                    box(
+                      selectInput(inputId = "issueCode", label = "Issue Code", choices = c("me", "nu", "di", "hr", "co", "ec"), selected = "me"),
+                      plotOutput(outputId = "YesByYearsAndIssueCode"), width = 12
+                    )
+                  ) 
+                ),
+                tabPanel(
+                  "Vote Agreement",
+                  fluidRow(
+                    box(
+                      plotOutput(outputId = "voteAgreement"), width = 12
+                    )
                   )
+                )
+                
               )
+
       ),
       # 3rd tab vote prediction
       tabItem(tabName = "vote_prediction",
